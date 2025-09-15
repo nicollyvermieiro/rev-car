@@ -17,17 +17,24 @@ export default {
     const values = data.map(item => item.total_revisoes);
 
     new Chart(document.getElementById('graficoPessoasComMaisRevisoes'), {
-      type: 'horizontalBar',
+      type: 'bar',
       data: {
-        labels,
+        labels: labels,
         datasets: [{
           label: 'Revisões',
           data: values,
           backgroundColor: '#FF6384'
         }]
       },
-      options: { responsive: true }
-    });
+       options: { 
+    responsive: true,
+    indexAxis: 'y', 
+    scales: {
+      x: { beginAtZero: true },
+      y: { beginAtZero: true }
+    }
+  }
+});
   }
 }
 </script>

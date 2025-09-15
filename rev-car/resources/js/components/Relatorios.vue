@@ -105,12 +105,16 @@ onMounted(async () => {
 // Montagem dos dados para Chart.js
 const chartDataVeiculosPorPessoa = computed(() => ({
   labels: veiculosPorPessoa.value.map(v => v.nome),
-  datasets: [{ label: 'Veículos', data: veiculosPorPessoa.value.map(v => v.quantidade), backgroundColor: 'rgba(54,162,235,0.6)' }]
+  datasets: [{
+    label: 'Veículos',
+    data: veiculosPorPessoa.value.map(v => v.veiculos.length),
+    backgroundColor: 'rgba(54,162,235,0.6)'
+  }]
 }))
 
 const chartDataVeiculosPorSexo = computed(() => ({
   labels: veiculosPorSexo.value.map(v => v.sexo),
-  datasets: [{ label: 'Veículos', data: veiculosPorSexo.value.map(v => v.quantidade), backgroundColor: ['#36A2EB','#FF6384'] }]
+  datasets: [{ label: 'Veículos', data: veiculosPorSexo.value.map(v => v.total), backgroundColor: ['#36A2EB','#FF6384'] }]
 }))
 
 const chartDataMarcasPorQuantidade = computed(() => ({
@@ -140,12 +144,12 @@ const chartDataRevisoesPorPeriodo = computed(() => ({
 
 const chartDataMarcasComMaisRevisoes = computed(() => ({
   labels: marcasComMaisRevisoes.value.map(m => m.marca),
-  datasets: [{ label: 'Revisões', data: marcasComMaisRevisoes.value.map(m => m.quantidade), backgroundColor: 'rgba(75,192,192,0.6)' }]
+  datasets: [{ label: 'Revisões', data: marcasComMaisRevisoes.value.map(m => m.total_revisoes), backgroundColor: 'rgba(75,192,192,0.6)' }]
 }))
 
 const chartDataPessoasComMaisRevisoes = computed(() => ({
   labels: pessoasComMaisRevisoes.value.map(p => p.nome),
-  datasets: [{ label: 'Revisões', data: pessoasComMaisRevisoes.value.map(p => p.quantidade), backgroundColor: 'rgba(255,159,64,0.6)' }]
+  datasets: [{ label: 'Revisões', data: pessoasComMaisRevisoes.value.map(p => p.total_revisoes), backgroundColor: 'rgba(255,159,64,0.6)' }]
 }))
 
 const chartDataMediaTempoEntreRevisoes = computed(() => ({
@@ -154,7 +158,7 @@ const chartDataMediaTempoEntreRevisoes = computed(() => ({
 }))
 
 const chartDataProximasRevisoes = computed(() => ({
-  labels: proximasRevisoes.value.map(x => x.veiculo),
-  datasets: [{ label: 'Próximas Revisões', data: proximasRevisoes.value.map(x => x.data), backgroundColor: 'rgba(255,205,86,0.6)' }]
+  labels: proximasRevisoes.value.map(x => `${x.nome} - ${x.modelo}`),
+  datasets: [{ label: 'Próximas Revisões', data: proximasRevisoes.value.map(x => x.proxima_revisao_aproximada), backgroundColor: 'rgba(255,205,86,0.6)' }]
 }))
 </script>

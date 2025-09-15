@@ -8,12 +8,15 @@
 <script>
 import Chart from 'chart.js/auto';
 
+let chartInstance = null
 
 export default {
   async mounted() {
     const res = await fetch('/api/relatorios/marcas-por-sexo');
     const data = await res.json();
+
     const marcas = [...new Set(data.map(item => item.marca))];
+
     // Separando por sexo
     const homens = marcas.map(marca => {
       const obj = data.find(d => d.marca === marca && d.sexo === 'M');
@@ -24,7 +27,11 @@ export default {
       return obj ? obj.total : 0;
     });
 
-    new Chart(document.getElementById('graficoMarcasPorSexo'), {
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(document.getElementById('graficoMarcasPorSexo'), {
       type: 'bar',
       data: {
         labels: marcas,
@@ -33,7 +40,13 @@ export default {
           { label: 'Mulheres', data: mulheres, backgroundColor: '#FF6384' }
         ]
       },
-      options: { responsive: true }
+      options: { 
+        responsive: true,
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true }
+        }
+      }
     });
   }
 }

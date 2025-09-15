@@ -18,9 +18,20 @@ class RelatoriosController extends Controller
 
     // Relatório: Veículos por pessoa, ordenado por nome
     public function veiculosPorPessoa()
-    {
-        return Proprietario::with('veiculos')->orderBy('nome')->get();
-    }
+{
+    return Proprietario::with('veiculos')
+        ->orderBy('nome')
+        ->get()
+        ->map(function($p) {
+            return [
+                'id' => $p->id,
+                'nome' => $p->nome,
+                'quantidade' => $p->veiculos->count(),
+                'veiculos' => $p->veiculos,
+            ];
+        });
+}
+
 
     // Relatório: Quem tem mais veículos (homens ou mulheres)
     public function veiculosPorSexo()
@@ -53,17 +64,11 @@ class RelatoriosController extends Controller
 
     // Relatório: Todas as pessoas
     public function pessoas()
-    {
-        return Proprietario::all();
-    }
-
-    // Relatório: Todas as pessoas separadas por sexo, com idade média
-    public function pessoasPorSexoComIdadeMedia()
-    {
-        return Proprietario::select('sexo', DB::raw('count(*) as total'), DB::raw('AVG(EXTRACT(YEAR FROM AGE(data_nascimento))) as idade_media'))
-            ->groupBy('sexo')
-            ->get();
-    }
+{
+    return Proprietario::all()->map(function($p) {
+        return ['id' => $p->id, 'nome' => $p->nome, 'quantidade' => $p->veiculos->count() ?? 0];
+    });
+}
 
     // Relatório: Todas as revisões dentro de um período
     public function revisoesPorPeriodo(Request $request)
@@ -95,23 +100,30 @@ class RelatoriosController extends Controller
     }
 
     // Relatório: Média de tempo entre uma revisão e outra de uma mesma pessoa
-    public function mediaTempoEntreRevisoesPorPessoa()
-    {
-        $sql = "
-            SELECT p.nome, AVG(diff) AS media_dias
-            FROM (
-                SELECT v.proprietario_id, r.id, r.data_revisao,
-                       LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) AS proxima_revisao,
-                       EXTRACT(DAY FROM LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) - r.data_revisao) AS diff
-                FROM revisoes r
-                JOIN veiculos v ON r.veiculo_id = v.id
-            ) t
-            JOIN proprietarios p ON t.proprietario_id = p.id
-            WHERE t.diff IS NOT NULL
-            GROUP BY p.nome
-        ";
-        return DB::select($sql);
-    }
+   public function mediaTempoEntreRevisoes()
+{
+    $sql = "
+        SELECT 
+            p.nome, 
+            AVG(diff) AS media_dias
+        FROM (
+            SELECT 
+                v.proprietario_id,
+                r.id,
+                r.data_revisao,
+                LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) AS proxima_revisao,
+                (LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) - r.data_revisao) AS diff
+            FROM revisoes r
+            JOIN veiculos v ON r.veiculo_id = v.id
+        ) t
+        JOIN proprietarios p ON t.proprietario_id = p.id
+        WHERE t.diff IS NOT NULL
+        GROUP BY p.nome;
+    ";
+
+    return response()->json(DB::select($sql));
+}
+
 
     // Relatório: Próximas revisões baseado no tempo médio baseado na última revisão
     public function proximasRevisoes()

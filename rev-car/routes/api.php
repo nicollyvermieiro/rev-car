@@ -18,9 +18,8 @@ Route::get('relatorios/veiculos-por-sexo', [RelatoriosController::class, 'veicul
 Route::get('relatorios/marcas-por-quantidade', [RelatoriosController::class, 'marcasPorQuantidade']);
 Route::get('relatorios/marcas-por-sexo', [RelatoriosController::class, 'marcasPorSexo']);
 Route::get('relatorios/pessoas', [RelatoriosController::class, 'pessoas']);
-Route::get('relatorios/pessoas-por-sexo-idade-media', [RelatoriosController::class, 'pessoasPorSexoComIdadeMedia']);
 Route::get('relatorios/revisoes-por-periodo', [RelatoriosController::class, 'revisoesPorPeriodo']);
 Route::get('relatorios/marcas-com-mais-revisoes', [RelatoriosController::class, 'marcasComMaisRevisoes']);
 Route::get('relatorios/pessoas-com-mais-revisoes', [RelatoriosController::class, 'pessoasComMaisRevisoes']);
-Route::get('relatorios/media-tempo-entre-revisoes', [RelatoriosController::class, 'mediaTempoEntreRevisoesPorPessoa']);
+Route::get('relatorios/media-tempo-entre-revisoes', [RelatoriosController::class, 'mediaTempoEntreRevisoes']);
 Route::get('relatorios/proximas-revisoes', [RelatoriosController::class, 'proximasRevisoes']);

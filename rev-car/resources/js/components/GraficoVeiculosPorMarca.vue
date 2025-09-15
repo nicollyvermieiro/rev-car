@@ -30,4 +30,11 @@ export default {
     });
   }
 }
+
+onBeforeUnmount(() => {
+  if (chartInstance) {
+    chartInstance.destroy()
+    chartInstance = null
+  }
+})
 </script>

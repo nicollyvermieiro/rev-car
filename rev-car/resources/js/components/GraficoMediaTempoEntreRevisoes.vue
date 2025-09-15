@@ -8,15 +8,25 @@
 <script>
 import Chart from 'chart.js/auto';
 
+let chartInstance = null
 
 export default {
   async mounted() {
     const res = await fetch('/api/relatorios/media-tempo-entre-revisoes');
+    if (!res.ok) {
+      console.error("Erro no backend:", await res.text());
+      return;
+    }
+
     const data = await res.json();
     const labels = data.map(item => item.nome);
     const values = data.map(item => Number(item.media_dias));
 
-    new Chart(document.getElementById('graficoMediaTempoEntreRevisoes'), {
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(document.getElementById('graficoMediaTempoEntreRevisoes'), {
       type: 'bar',
       data: {
         labels,
@@ -26,7 +36,13 @@ export default {
           backgroundColor: '#FFCE56'
         }]
       },
-      options: { responsive: true }
+      options: { 
+        responsive: true,
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true }
+        }
+      }
     });
   }
 }

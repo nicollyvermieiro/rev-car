@@ -15,9 +15,6 @@
         <GraficoMarcasPorSexo/>
       </section>
       <section>
-        <GraficoPessoasPorSexoIdade/>
-      </section>
-      <section>
         <GraficoRevisoesPorPeriodo/>
       </section>
       <section>
@@ -41,7 +38,6 @@ import GraficoVeiculosPorMarca from './GraficoVeiculosPorMarca.vue'
 import GraficoVeiculosPorPessoa from './GraficoVeiculosPorPessoa.vue'
 import GraficoVeiculosPorSexo from './GraficoVeiculosPorSexo.vue'
 import GraficoMarcasPorSexo from './GraficoMarcasPorSexo.vue'
-import GraficoPessoasPorSexoIdade from './GraficoPessoasPorSexoIdade.vue'
 import GraficoRevisoesPorPeriodo from './GraficoRevisoesPorPeriodo.vue'
 import GraficoMarcasComMaisRevisoes from './GraficoMarcasComMaisRevisoes.vue'
 import GraficoPessoasComMaisRevisoes from './GraficoPessoasComMaisRevisoes.vue'
@@ -54,7 +50,6 @@ export default {
     GraficoVeiculosPorPessoa,
     GraficoVeiculosPorSexo,
     GraficoMarcasPorSexo,
-    GraficoPessoasPorSexoIdade,
     GraficoRevisoesPorPeriodo,
     GraficoMarcasComMaisRevisoes,
     GraficoPessoasComMaisRevisoes,

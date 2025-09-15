@@ -34,7 +34,7 @@ export default {
       options: {
         responsive: true,
         scales: {
-          xAxes: [{
+          x: [{
             ticks: { autoSkip: false }
           }]
         }

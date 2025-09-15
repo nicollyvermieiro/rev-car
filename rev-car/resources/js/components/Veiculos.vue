@@ -17,8 +17,8 @@
             <input v-model="form.modelo" class="form-control" required />
           </div>
           <div class="mb-2">
-            <label>Ano:</label>
-            <input v-model="form.ano" type="number" class="form-control" required />
+            <label>Placa:</label>
+            <input v-model="form.placa" class="form-control" required />
           </div>
           <div class="mb-2">
             <label>Proprietário:</label>
@@ -40,7 +40,7 @@
           <th>ID</th>
           <th>Marca</th>
           <th>Modelo</th>
-          <th>Ano</th>
+          <th>Placa</th>
           <th>Proprietário</th>
           <th>Ações</th>
         </tr>
@@ -50,7 +50,7 @@
           <td>{{ v.id }}</td>
           <td>{{ v.marca }}</td>
           <td>{{ v.modelo }}</td>
-          <td>{{ v.ano }}</td>
+          <td>{{ v.placa }}</td>
           <td>{{ v.proprietario?.nome }}</td>
           <td>
             <button class="btn btn-sm btn-info" @click="editVeiculo(v)">Editar</button>
@@ -69,7 +69,7 @@ import { ref, onMounted } from 'vue'
 const veiculos = ref([])
 const proprietarios = ref([])
 const showForm = ref(false)
-const form = ref({ id: null, marca: '', modelo: '', ano: '', proprietario_id: '' })
+const form = ref({ id: null, marca: '', modelo: '', placa: '', proprietario_id: '' })
 
 async function fetchVeiculos() {
   const res = await fetch('/api/veiculos')
@@ -87,7 +87,7 @@ onMounted(async () => {
 })
 
 function openCreateForm() {
-  form.value = { id: null, marca: '', modelo: '', ano: '', proprietario_id: '' }
+  form.value = { id: null, marca: '', modelo: '', placa: '', proprietario_id: '' }
   showForm.value = true
 }
 
