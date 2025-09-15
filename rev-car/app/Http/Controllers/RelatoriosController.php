@@ -10,103 +10,123 @@ use Illuminate\Support\Facades\DB;
 
 class RelatoriosController extends Controller
 {
-    // Relatório: Todos os veículos
+    // Todos os veículos
     public function veiculos()
     {
-        $dados = Veiculo::with('proprietario')->get();
+        $dados = Veiculo::with('proprietario')->get()->toArray();
         return response()->json($dados);
     }
 
-    // Relatório: Veículos por pessoa, ordenado por nome
+    // Veículos por pessoa
     public function veiculosPorPessoa()
     {
         $dados = Proprietario::with('veiculos')
             ->orderBy('nome')
             ->get()
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'nome' => $p->nome,
-                    'quantidade' => $p->veiculos->count(),
-                    'veiculos' => $p->veiculos,
-                ];
-            });
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'nome' => $p->nome,
+                'quantidade' => $p->veiculos->count(),
+                'veiculos' => $p->veiculos->toArray(),
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Quem tem mais veículos (homens ou mulheres)
+    // Veículos por sexo
     public function veiculosPorSexo()
     {
         $dados = Proprietario::select('sexo', DB::raw('count(veiculos.id) as total'))
             ->join('veiculos', 'proprietarios.id', '=', 'veiculos.proprietario_id')
             ->groupBy('sexo')
             ->orderByDesc('total')
-            ->get();
+            ->get()
+            ->map(fn($d) => [
+                'sexo' => $d->sexo ?? 'N/I',
+                'total' => (int) $d->total
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Todas as marcas ordenadas pelo número de veículos
+    // Marcas por quantidade
     public function marcasPorQuantidade()
     {
         $dados = Veiculo::select('marca', DB::raw('count(*) as quantidade'))
             ->groupBy('marca')
             ->orderByDesc('quantidade')
-            ->get();
+            ->get()
+            ->map(fn($d) => [
+                'marca' => $d->marca ?? 'Sem Marca',
+                'quantidade' => (int) $d->quantidade
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Totais de marcas ordenadas, separados entre homens e mulheres
+    // Marcas por sexo do proprietário
     public function marcasPorSexo()
     {
         $dados = Veiculo::join('proprietarios', 'veiculos.proprietario_id', '=', 'proprietarios.id')
             ->select('veiculos.marca', 'proprietarios.sexo', DB::raw('count(*) as total'))
             ->groupBy('veiculos.marca', 'proprietarios.sexo')
             ->orderByDesc('total')
-            ->get();
+            ->get()
+            ->map(fn($d) => [
+                'marca' => $d->marca ?? 'Sem Marca',
+                'sexo' => $d->sexo ?? 'N/I',
+                'total' => (int) $d->total
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Todas as pessoas
+    // Todas as pessoas
     public function pessoas()
     {
-        $dados = Proprietario::all()->map(function ($p) {
-            return [
+        $dados = Proprietario::all()
+            ->map(fn($p) => [
                 'id' => $p->id,
                 'nome' => $p->nome,
                 'quantidade' => $p->veiculos->count() ?? 0
-            ];
-        });
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Todas as revisões dentro de um período
+    // Revisões por período
     public function revisoesPorPeriodo(Request $request)
     {
         $inicio = $request->query('inicio', '2024-01-01');
         $fim = $request->query('fim', '2024-12-31');
 
-        $dados = Revisao::whereBetween('data_revisao', [$inicio, $fim])->get();
+        $dados = Revisao::whereBetween('data_revisao', [$inicio, $fim])->get()->toArray();
         return response()->json($dados);
     }
 
-    // Relatório: Marcas com maior número de revisões
+    // Marcas com mais revisões
     public function marcasComMaisRevisoes()
     {
         $dados = Revisao::join('veiculos', 'revisoes.veiculo_id', '=', 'veiculos.id')
             ->select('veiculos.marca', DB::raw('count(revisoes.id) as total_revisoes'))
             ->groupBy('veiculos.marca')
             ->orderByDesc('total_revisoes')
-            ->get();
+            ->get()
+            ->map(fn($d) => [
+                'marca' => $d->marca ?? 'Sem Marca',
+                'total_revisoes' => (int) $d->total_revisoes
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Pessoas com maior número de revisões
+    // Pessoas com mais revisões
     public function pessoasComMaisRevisoes()
     {
         $dados = Revisao::join('veiculos', 'revisoes.veiculo_id', '=', 'veiculos.id')
@@ -114,12 +134,17 @@ class RelatoriosController extends Controller
             ->select('proprietarios.nome', DB::raw('count(revisoes.id) as total_revisoes'))
             ->groupBy('proprietarios.nome')
             ->orderByDesc('total_revisoes')
-            ->get();
+            ->get()
+            ->map(fn($d) => [
+                'nome' => $d->nome,
+                'total_revisoes' => (int) $d->total_revisoes
+            ])
+            ->toArray();
 
         return response()->json($dados);
     }
 
-    // Relatório: Média de tempo entre uma revisão e outra de uma mesma pessoa
+    // Média de tempo entre revisões
     public function mediaTempoEntreRevisoes()
     {
         $sql = "
@@ -142,10 +167,15 @@ class RelatoriosController extends Controller
         ";
 
         $dados = DB::select($sql);
+        $dados = array_map(fn($d) => [
+            'nome' => $d->nome,
+            'media_dias' => (float) $d->media_dias
+        ], $dados);
+
         return response()->json($dados);
     }
 
-    // Relatório: Próximas revisões baseado no tempo médio da última revisão
+    // Próximas revisões
     public function proximasRevisoes()
     {
         $sql = "
@@ -161,6 +191,12 @@ class RelatoriosController extends Controller
         ";
 
         $dados = DB::select($sql);
+        $dados = array_map(fn($d) => [
+            'nome' => $d->nome,
+            'modelo' => $d->modelo,
+            'proxima_revisao_aproximada' => $d->proxima_revisao_aproximada
+        ], $dados);
+
         return response()->json($dados);
     }
 }

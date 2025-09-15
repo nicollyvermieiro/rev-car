@@ -2,81 +2,22 @@
   <div>
     <h2>Relatórios</h2>
 
-    <div class="mb-4">
-      <h4>Veículos por Proprietário</h4>
-      <BarChart v-if="veiculosPorPessoa.length" :chartData="chartDataVeiculosPorPessoa" label="Proprietário" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Veículos por Sexo do Proprietário</h4>
-      <PieChart v-if="veiculosPorSexo.length" :chartData="chartDataVeiculosPorSexo" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Marcas por Quantidade</h4>
-      <BarChart v-if="marcasPorQuantidade.length" :chartData="chartDataMarcasPorQuantidade" label="Marca" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Marcas por Sexo do Proprietário</h4>
-      <BarChart v-if="marcasPorSexo.labels.length" :chartData="chartDataMarcasPorSexo" label="Marca" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Pessoas</h4>
-      <BarChart v-if="pessoas.length" :chartData="chartDataPessoas" label="Pessoa" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Pessoas por Sexo e Idade Média</h4>
-      <BarChart v-if="pessoasPorSexoIdadeMedia.length" :chartData="chartDataPessoasPorSexoIdadeMedia" label="Sexo" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Revisões por Período</h4>
-      <LineChart v-if="revisoesPorPeriodo.labels.length" :chartData="chartDataRevisoesPorPeriodo" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Marcas com Mais Revisões</h4>
-      <BarChart v-if="marcasComMaisRevisoes.length" :chartData="chartDataMarcasComMaisRevisoes" label="Marca" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Pessoas com Mais Revisões</h4>
-      <BarChart v-if="pessoasComMaisRevisoes.length" :chartData="chartDataPessoasComMaisRevisoes" label="Pessoa" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Média de Tempo entre Revisões por Pessoa</h4>
-      <BarChart v-if="mediaTempoEntreRevisoes.length" :chartData="chartDataMediaTempoEntreRevisoes" label="Pessoa" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
-
-    <div class="mb-4">
-      <h4>Próximas Revisões</h4>
-      <BarChart v-if="proximasRevisoes.length" :chartData="chartDataProximasRevisoes" label="Veículo" />
-      <div v-else class="alert alert-info">Carregando...</div>
-    </div>
+    <ChartBase
+      v-for="grafico in graficos"
+      :key="grafico.title"
+      :title="grafico.title"
+      :chartData="grafico.chartData"
+      :type="grafico.type"
+      :options="grafico.options"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import BarChart from './charts/BarChart.vue'
-import PieChart from './charts/PieChart.vue'
-import LineChart from './charts/LineChart.vue'
+import ChartBase from './ChartBase.vue'
 
-// --- Estados (dados recebidos da API) ---
+// --- Estados brutos da API ---
 const veiculosPorPessoa = ref([])
 const veiculosPorSexo = ref([])
 const marcasPorQuantidade = ref([])
@@ -89,35 +30,48 @@ const pessoasComMaisRevisoes = ref([])
 const mediaTempoEntreRevisoes = ref([])
 const proximasRevisoes = ref([])
 
-// --- Busca os dados na API quando o componente monta ---
+// --- Função genérica para fetch ---
+async function fetchData(url, target) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Erro HTTP ${res.status}`)
+    target.value = await res.json()
+  } catch (err) {
+    console.error(`Erro ao buscar ${url}:`, err)
+  }
+}
+
+// --- Busca os dados na API ---
 onMounted(async () => {
-  veiculosPorPessoa.value = await (await fetch('/api/relatorios/veiculos-por-pessoa')).json()
-  veiculosPorSexo.value = await (await fetch('/api/relatorios/veiculos-por-sexo')).json()
-  marcasPorQuantidade.value = await (await fetch('/api/relatorios/marcas-por-quantidade')).json()
-  marcasPorSexo.value = await (await fetch('/api/relatorios/marcas-por-sexo')).json()
-  pessoas.value = await (await fetch('/api/relatorios/pessoas')).json()
-  pessoasPorSexoIdadeMedia.value = await (await fetch('/api/relatorios/pessoas-por-sexo-idade-media')).json()
-  revisoesPorPeriodo.value = await (await fetch('/api/relatorios/revisoes-por-periodo')).json()
-  marcasComMaisRevisoes.value = await (await fetch('/api/relatorios/marcas-com-mais-revisoes')).json()
-  pessoasComMaisRevisoes.value = await (await fetch('/api/relatorios/pessoas-com-mais-revisoes')).json()
-  mediaTempoEntreRevisoes.value = await (await fetch('/api/relatorios/media-tempo-entre-revisoes')).json()
-  proximasRevisoes.value = await (await fetch('/api/relatorios/proximas-revisoes')).json()
+  await Promise.all([
+    fetchData('/api/relatorios/veiculos-por-pessoa', veiculosPorPessoa),
+    fetchData('/api/relatorios/veiculos-por-sexo', veiculosPorSexo),
+    fetchData('/api/relatorios/marcas-por-quantidade', marcasPorQuantidade),
+    fetchData('/api/relatorios/marcas-por-sexo', marcasPorSexo),
+    fetchData('/api/relatorios/pessoas', pessoas),
+    fetchData('/api/relatorios/pessoas-por-sexo-idade-media', pessoasPorSexoIdadeMedia),
+    fetchData('/api/relatorios/revisoes-por-periodo', revisoesPorPeriodo),
+    fetchData('/api/relatorios/marcas-com-mais-revisoes', marcasComMaisRevisoes),
+    fetchData('/api/relatorios/pessoas-com-mais-revisoes', pessoasComMaisRevisoes),
+    fetchData('/api/relatorios/media-tempo-entre-revisoes', mediaTempoEntreRevisoes),
+    fetchData('/api/relatorios/proximas-revisoes', proximasRevisoes)
+  ])
 })
 
-// --- Computed para montar dados no formato do Chart.js ---
+// --- Computed para dados no formato Chart.js ---
 const chartDataVeiculosPorPessoa = computed(() => ({
   labels: veiculosPorPessoa.value.map(v => v.nome),
-  datasets: [{ label: 'Veículos', data: veiculosPorPessoa.value.map(v => v.quantidade), backgroundColor: 'rgba(54,162,235,0.6)' }]
+  datasets: [{ label: 'Veículos', data: veiculosPorPessoa.value.map(v => v.quantidade) }]
 }))
 
 const chartDataVeiculosPorSexo = computed(() => ({
   labels: veiculosPorSexo.value.map(v => v.sexo),
-  datasets: [{ label: 'Veículos', data: veiculosPorSexo.value.map(v => v.total), backgroundColor: ['#36A2EB','#FF6384'] }]
+  datasets: [{ label: 'Veículos', data: veiculosPorSexo.value.map(v => v.total) }]
 }))
 
 const chartDataMarcasPorQuantidade = computed(() => ({
   labels: marcasPorQuantidade.value.map(m => m.marca),
-  datasets: [{ label: 'Quantidade', data: marcasPorQuantidade.value.map(m => m.quantidade), backgroundColor: 'rgba(255,99,132,0.6)' }]
+  datasets: [{ label: 'Quantidade', data: marcasPorQuantidade.value.map(m => m.quantidade) }]
 }))
 
 const chartDataMarcasPorSexo = computed(() => ({
@@ -127,36 +81,47 @@ const chartDataMarcasPorSexo = computed(() => ({
 
 const chartDataPessoas = computed(() => ({
   labels: pessoas.value.map(p => p.nome),
-  datasets: [{ label: 'Proprietários', data: pessoas.value.map(p => p.quantidade), backgroundColor: 'rgba(153,102,255,0.6)' }]
+  datasets: [{ label: 'Proprietários', data: pessoas.value.map(p => p.quantidade) }]
 }))
 
 const chartDataPessoasPorSexoIdadeMedia = computed(() => ({
   labels: pessoasPorSexoIdadeMedia.value.map(x => x.sexo),
-  datasets: [{ label: 'Idade Média', data: pessoasPorSexoIdadeMedia.value.map(x => x.idade_media), backgroundColor: 'rgba(255,206,86,0.6)' }]
+  datasets: [{ label: 'Idade Média', data: pessoasPorSexoIdadeMedia.value.map(x => x.idade_media) }]
 }))
 
-const chartDataRevisoesPorPeriodo = computed(() => ({
-  labels: revisoesPorPeriodo.value.labels,
-  datasets: revisoesPorPeriodo.value.datasets
-}))
-
+const chartDataRevisoesPorPeriodo = computed(() => revisoesPorPeriodo.value)
 const chartDataMarcasComMaisRevisoes = computed(() => ({
   labels: marcasComMaisRevisoes.value.map(m => m.marca),
-  datasets: [{ label: 'Revisões', data: marcasComMaisRevisoes.value.map(m => m.total_revisoes), backgroundColor: 'rgba(75,192,192,0.6)' }]
+  datasets: [{ label: 'Revisões', data: marcasComMaisRevisoes.value.map(m => m.total_revisoes) }]
 }))
 
 const chartDataPessoasComMaisRevisoes = computed(() => ({
   labels: pessoasComMaisRevisoes.value.map(p => p.nome),
-  datasets: [{ label: 'Revisões', data: pessoasComMaisRevisoes.value.map(p => p.total_revisoes), backgroundColor: 'rgba(255,159,64,0.6)' }]
+  datasets: [{ label: 'Revisões', data: pessoasComMaisRevisoes.value.map(p => p.total_revisoes) }]
 }))
 
 const chartDataMediaTempoEntreRevisoes = computed(() => ({
   labels: mediaTempoEntreRevisoes.value.map(x => x.nome),
-  datasets: [{ label: 'Dias', data: mediaTempoEntreRevisoes.value.map(x => x.media_dias), backgroundColor: 'rgba(54,162,235,0.6)' }]
+  datasets: [{ label: 'Dias', data: mediaTempoEntreRevisoes.value.map(x => x.media_dias) }]
 }))
 
 const chartDataProximasRevisoes = computed(() => ({
   labels: proximasRevisoes.value.map(x => `${x.nome} - ${x.modelo}`),
-  datasets: [{ label: 'Próximas Revisões', data: proximasRevisoes.value.map(x => x.proxima_revisao_aproximada), backgroundColor: 'rgba(255,205,86,0.6)' }]
+  datasets: [{ label: 'Próximas Revisões', data: proximasRevisoes.value.map(x => new Date(x.proxima_revisao_aproximada).getTime() / (1000*60*60*24)) }]
 }))
+
+// --- Array de gráficos para renderização dinâmica ---
+const graficos = computed(() => [
+  { title: 'Veículos por Proprietário', chartData: chartDataVeiculosPorPessoa, type: 'bar' },
+  { title: 'Veículos por Sexo do Proprietário', chartData: chartDataVeiculosPorSexo, type: 'pie' },
+  { title: 'Marcas por Quantidade', chartData: chartDataMarcasPorQuantidade, type: 'bar' },
+  { title: 'Marcas por Sexo do Proprietário', chartData: chartDataMarcasPorSexo, type: 'bar', options: { scales: { x: { stacked: true }, y: { stacked: true } } } },
+  { title: 'Pessoas', chartData: chartDataPessoas, type: 'bar' },
+  { title: 'Pessoas por Sexo e Idade Média', chartData: chartDataPessoasPorSexoIdadeMedia, type: 'bar' },
+  { title: 'Revisões por Período', chartData: chartDataRevisoesPorPeriodo, type: 'line' },
+  { title: 'Marcas com Mais Revisões', chartData: chartDataMarcasComMaisRevisoes, type: 'bar' },
+  { title: 'Pessoas com Mais Revisões', chartData: chartDataPessoasComMaisRevisoes, type: 'bar' },
+  { title: 'Média de Tempo entre Revisões por Pessoa', chartData: chartDataMediaTempoEntreRevisoes, type: 'bar' },
+  { title: 'Próximas Revisões', chartData: chartDataProximasRevisoes, type: 'bar' }
+])
 </script>
