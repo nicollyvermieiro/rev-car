@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Veiculo;
 use Illuminate\Http\Request;
 
-class VeiculoController extends Controller
+class VeiculosController extends Controller
 {
     public function index()
     {

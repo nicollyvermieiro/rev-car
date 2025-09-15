@@ -11,6 +11,7 @@
             <label>Nome:</label>
             <input v-model="form.nome" class="form-control" required />
           </div>
+
           <div class="mb-2">
             <label>Sexo:</label>
             <select v-model="form.sexo" class="form-control" required>
@@ -19,10 +20,17 @@
               <option value="F">Feminino</option>
             </select>
           </div>
+
           <div class="mb-2">
-            <label>Idade:</label>
-            <input v-model="form.idade" type="number" class="form-control" required />
+            <label>Data de Nascimento:</label>
+            <input v-model="form.data_nascimento" type="date" class="form-control" required />
           </div>
+
+          <div class="mb-2">
+            <label>Email:</label>
+            <input v-model="form.email" type="email" class="form-control" required />
+          </div>
+
           <button class="btn btn-primary" type="submit">Salvar</button>
           <button class="btn btn-secondary ms-2" @click="closeForm" type="button">Cancelar</button>
         </form>
@@ -35,7 +43,8 @@
           <th>ID</th>
           <th>Nome</th>
           <th>Sexo</th>
-          <th>Idade</th>
+          <th>Data Nascimento</th>
+          <th>Email</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -44,7 +53,8 @@
           <td>{{ p.id }}</td>
           <td>{{ p.nome }}</td>
           <td>{{ p.sexo }}</td>
-          <td>{{ p.idade }}</td>
+          <td>{{ p.data_nascimento }}</td>
+          <td>{{ p.email }}</td>
           <td>
             <button class="btn btn-sm btn-info" @click="editProprietario(p)">Editar</button>
             <button class="btn btn-sm btn-danger ms-2" @click="deleteProprietario(p.id)">Excluir</button>
@@ -52,15 +62,17 @@
         </tr>
       </tbody>
     </table>
+
     <div v-else class="alert alert-info">Nenhum proprietário cadastrado.</div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+
 const lista = ref([])
 const showForm = ref(false)
-const form = ref({ id: null, nome: '', sexo: '', idade: '' })
+const form = ref({ id: null, nome: '', sexo: '', data_nascimento: '', email: '' })
 
 async function fetchProprietarios() {
   const res = await fetch('/api/proprietarios')
@@ -70,7 +82,7 @@ async function fetchProprietarios() {
 onMounted(fetchProprietarios)
 
 function openCreateForm() {
-  form.value = { id: null, nome: '', sexo: '', idade: '' }
+  form.value = { id: null, nome: '', sexo: '', data_nascimento: '', email: '' }
   showForm.value = true
 }
 
@@ -86,11 +98,13 @@ function editProprietario(p) {
 async function saveProprietario() {
   const method = form.value.id ? 'PUT' : 'POST'
   const url = form.value.id ? `/api/proprietarios/${form.value.id}` : '/api/proprietarios'
+
   const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(form.value)
   })
+
   if (res.ok) {
     await fetchProprietarios()
     closeForm()

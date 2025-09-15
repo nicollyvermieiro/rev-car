@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Proprietario;
 use Illuminate\Http\Request;
 
-class ProprietarioController extends Controller
+class ProprietariosController extends Controller
 {
     public function index()
     {

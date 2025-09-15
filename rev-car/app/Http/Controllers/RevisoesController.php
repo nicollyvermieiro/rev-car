@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Revisao;
 use Illuminate\Http\Request;
 
-class RevisaoController extends Controller
+class RevisoesController extends Controller
 {
     public function index()
     {

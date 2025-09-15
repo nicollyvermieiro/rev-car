@@ -8,7 +8,7 @@ use App\Models\Veiculo;
 use App\Models\Revisao;
 use Illuminate\Support\Facades\DB;
 
-class RelatorioController extends Controller
+class RelatoriosController extends Controller
 {
     // Relatório: Todos os veículos
     public function veiculos()
