@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2>Relatórios</h2>
+
     <div class="mb-4">
       <h4>Veículos por Proprietário</h4>
       <BarChart v-if="veiculosPorPessoa.length" :chartData="chartDataVeiculosPorPessoa" label="Proprietário" />
@@ -70,12 +71,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BarChart from './charts/BarChart.vue'
 import PieChart from './charts/PieChart.vue'
 import LineChart from './charts/LineChart.vue'
 
-// Dados dos relatórios
+// --- Estados (dados recebidos da API) ---
 const veiculosPorPessoa = ref([])
 const veiculosPorSexo = ref([])
 const marcasPorQuantidade = ref([])
@@ -88,6 +89,7 @@ const pessoasComMaisRevisoes = ref([])
 const mediaTempoEntreRevisoes = ref([])
 const proximasRevisoes = ref([])
 
+// --- Busca os dados na API quando o componente monta ---
 onMounted(async () => {
   veiculosPorPessoa.value = await (await fetch('/api/relatorios/veiculos-por-pessoa')).json()
   veiculosPorSexo.value = await (await fetch('/api/relatorios/veiculos-por-sexo')).json()
@@ -102,14 +104,10 @@ onMounted(async () => {
   proximasRevisoes.value = await (await fetch('/api/relatorios/proximas-revisoes')).json()
 })
 
-// Montagem dos dados para Chart.js
+// --- Computed para montar dados no formato do Chart.js ---
 const chartDataVeiculosPorPessoa = computed(() => ({
   labels: veiculosPorPessoa.value.map(v => v.nome),
-  datasets: [{
-    label: 'Veículos',
-    data: veiculosPorPessoa.value.map(v => v.veiculos.length),
-    backgroundColor: 'rgba(54,162,235,0.6)'
-  }]
+  datasets: [{ label: 'Veículos', data: veiculosPorPessoa.value.map(v => v.quantidade), backgroundColor: 'rgba(54,162,235,0.6)' }]
 }))
 
 const chartDataVeiculosPorSexo = computed(() => ({

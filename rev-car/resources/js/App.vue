@@ -1,5 +1,5 @@
 <template>
-  <RevCar/>
+  <RevCar />
 </template>
 
 <script>

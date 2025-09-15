@@ -1,40 +1,52 @@
 <template>
   <div>
-    <h2>Revisões por Período</h2>
-    <canvas id="graficoRevisoesPorPeriodo"></canvas>
+    <h2>Marcas por Sexo do Proprietário</h2>
+    <canvas v-if="chartData.datasets.length" id="graficoMarcasPorSexo"></canvas>
+    <div v-else class="alert alert-info">Carregando...</div>
   </div>
 </template>
 
-<script>
-import Chart from 'chart.js/auto';
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import Chart from 'chart.js/auto'
 
+const chartData = ref({ labels: [], datasets: [] })
+let chartInstance = null
 
-export default {
-  async mounted() {
-    // Exemplo com período fixo, pode ser dinâmico
-    const res = await fetch('/api/relatorios/revisoes-por-periodo?inicio=2024-01-01&fim=2024-12-31');
-    const data = await res.json();
-    // Agrupa por mês
-    const meses = {};
-    data.forEach(item => {
-      const mes = item.data_revisao.slice(0,7); // 'YYYY-MM'
-      meses[mes] = (meses[mes] || 0) + 1;
-    });
-    const labels = Object.keys(meses);
-    const values = Object.values(meses);
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost/api/relatorios/marcas-por-sexo')
+    const data = await res.json()
+    const labelsSet = new Set()
+    const datasetsMap = {}
 
-    new Chart(document.getElementById('graficoRevisoesPorPeriodo'), {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Revisões',
-          data: values,
-          borderColor: '#36A2EB'
-        }]
-      },
-      options: { responsive: true }
-    });
+    data.forEach(i => {
+      labelsSet.add(i.marca)
+      if (!datasetsMap[i.sexo]) datasetsMap[i.sexo] = []
+    })
+
+    chartData.value.labels = Array.from(labelsSet)
+    Object.keys(datasetsMap).forEach(sexo => {
+      datasetsMap[sexo] = chartData.value.labels.map(label => {
+        const item = data.find(d => d.marca === label && d.sexo === sexo)
+        return item ? item.total : 0
+      })
+      chartData.value.datasets.push({
+        label: sexo,
+        data: datasetsMap[sexo],
+        backgroundColor: sexo === 'M' ? '#36A2EB' : '#FF6384'
+      })
+    })
+
+    chartInstance = new Chart(document.getElementById('graficoMarcasPorSexo'), {
+      type: 'bar',
+      data: chartData.value,
+      options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true } } }
+    })
+  } catch (err) {
+    console.error(err)
   }
-}
+})
+
+onBeforeUnmount(() => { if (chartInstance) chartInstance.destroy() })
 </script>

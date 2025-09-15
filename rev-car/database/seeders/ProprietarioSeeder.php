@@ -9,6 +9,8 @@ class ProprietarioSeeder extends Seeder
 {
     public function run()
     {
+        Proprietario::truncate();
+        
         $proprietarios = [
             ['nome' => 'Ana Paula', 'email' => 'ana@teste.com', 'sexo' => 'F', 'data_nascimento' => '1990-03-15'],
             ['nome' => 'Carlos Silva', 'email' => 'carlos@teste.com', 'sexo' => 'M', 'data_nascimento' => '1985-06-10'],

@@ -1,45 +1,37 @@
 <template>
   <div>
-    <h2>Próximas Revisões por Veículo</h2>
-    <canvas id="graficoProximasRevisoes"></canvas>
+    <h2>Próximas Revisões</h2>
+    <canvas v-if="chartData.datasets.length" id="graficoProximasRevisoes"></canvas>
+    <div v-else class="alert alert-info">Carregando...</div>
   </div>
 </template>
 
-<script>
-import Chart from 'chart.js/auto';
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import Chart from 'chart.js/auto'
 
+const chartData = ref({ labels: [], datasets: [] })
+let chartInstance = null
 
-export default {
-  async mounted() {
-    const res = await fetch('/api/relatorios/proximas-revisoes');
-    const data = await res.json();
-    const labels = data.map(item => `${item.nome} - ${item.modelo}`);
-    const values = data.map(item => new Date(item.proxima_revisao_aproximada).getTime());
-
-    // Exemplo: transformar datas em ordem crescente
-    const sorted = labels.map((label, i) => ({
-      label, value: values[i]
-    })).sort((a, b) => a.value - b.value);
-
-    new Chart(document.getElementById('graficoProximasRevisoes'), {
-      type: 'line',
-      data: {
-        labels: sorted.map(item => item.label),
-        datasets: [{
-          label: 'Próxima Revisão',
-          data: sorted.map(item => item.value),
-          borderColor: '#36A2EB'
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: [{
-            ticks: { autoSkip: false }
-          }]
-        }
-      }
-    });
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost/api/relatorios/proximas-revisoes')
+    const data = await res.json()
+    chartData.value.labels = data.map(i => `${i.nome} - ${i.modelo}`)
+    chartData.value.datasets = [{
+      label: 'Próximas Revisões (dias)',
+      data: data.map(i => new Date(i.proxima_revisao_aproximada).getTime() / (1000*60*60*24)), // converte para dias
+      backgroundColor: 'rgba(255, 205, 86, 0.6)'
+    }]
+    chartInstance = new Chart(document.getElementById('graficoProximasRevisoes'), {
+      type: 'bar',
+      data: chartData.value,
+      options: { responsive: true }
+    })
+  } catch (err) {
+    console.error(err)
   }
-}
+})
+
+onBeforeUnmount(() => { if (chartInstance) chartInstance.destroy() })
 </script>

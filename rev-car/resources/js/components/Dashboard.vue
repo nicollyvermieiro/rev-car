@@ -2,33 +2,15 @@
   <div>
     <h1>Dashboard de Relatórios</h1>
     <div class="dashboard-grid">
-      <section>
-        <GraficoVeiculosPorMarca/>
-      </section>
-      <section>
-        <GraficoVeiculosPorPessoa/>
-      </section>
-      <section>
-        <GraficoVeiculosPorSexo/>
-      </section>
-      <section>
-        <GraficoMarcasPorSexo/>
-      </section>
-      <section>
-        <GraficoRevisoesPorPeriodo/>
-      </section>
-      <section>
-        <GraficoMarcasComMaisRevisoes/>
-      </section>
-      <section>
-        <GraficoPessoasComMaisRevisoes/>
-      </section>
-      <section>
-        <GraficoMediaTempoEntreRevisoes/>
-      </section>
-      <section>
-        <GraficoProximasRevisoes/>
-      </section>
+      <section><GraficoVeiculosPorMarca/></section>
+      <section><GraficoVeiculosPorPessoa/></section>
+      <section><GraficoVeiculosPorSexo/></section>
+      <section><GraficoMarcasPorSexo/></section>
+      <section><GraficoRevisoesPorPeriodo/></section>
+      <section><GraficoMarcasComMaisRevisoes/></section>
+      <section><GraficoPessoasComMaisRevisoes/></section>
+      <section><GraficoMediaTempoEntreRevisoes/></section>
+      <section><GraficoProximasRevisoes/></section>
     </div>
   </div>
 </template>
@@ -74,5 +56,10 @@ section {
 h1 {
   text-align: center;
   margin-bottom: 2rem;
+}
+.alert {
+  text-align: center;
+  color: #555;
+  font-style: italic;
 }
 </style>

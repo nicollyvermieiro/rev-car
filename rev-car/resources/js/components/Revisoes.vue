@@ -16,7 +16,7 @@
           </div>
           <div class="mb-2">
             <label>Data:</label>
-            <input v-model="form.data" type="date" class="form-control" required />
+            <input v-model="form.data_revisao" type="date" class="form-control" required />
           </div>
           <div class="mb-2">
             <label>Descrição:</label>
@@ -61,7 +61,7 @@ import { ref, onMounted } from 'vue'
 const revisoes = ref([])
 const veiculos = ref([])
 const showForm = ref(false)
-const form = ref({ id: null, veiculo_id: '', data: '', descricao: '' })
+const form = ref({ id: null, veiculo_id: '', data_revisao: '', descricao: '' })
 
 async function fetchRevisoes() {
   const res = await fetch('/api/revisoes')
@@ -88,9 +88,10 @@ function closeForm() {
 }
 
 function editRevisao(r) {
-  form.value = { ...r, veiculo_id: r.veiculo_id }
+  form.value = { ...r, veiculo_id: r.veiculo_id, data_revisao: r.data_revisao }
   showForm.value = true
 }
+
 
 async function saveRevisao() {
   const method = form.value.id ? 'PUT' : 'POST'
