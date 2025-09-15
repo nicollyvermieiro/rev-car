@@ -1,0 +1,34 @@
+-- Relatórios de Veículos
+SELECT * FROM veiculos;
+SELECT v.*, p.nome FROM veiculos v JOIN proprietarios p ON v.proprietario_id = p.id ORDER BY p.nome;
+SELECT p.sexo, COUNT(v.id) AS total_veiculos FROM proprietarios p JOIN veiculos v ON v.proprietario_id = p.id GROUP BY p.sexo ORDER BY total_veiculos DESC;
+SELECT marca, COUNT(*) AS quantidade FROM veiculos GROUP BY marca ORDER BY quantidade DESC;
+SELECT v.marca, p.sexo, COUNT(*) AS total FROM veiculos v JOIN proprietarios p ON v.proprietario_id = p.id GROUP BY v.marca, p.sexo ORDER BY total DESC;
+
+-- Relatórios de Pessoas
+SELECT * FROM proprietarios;
+SELECT sexo, COUNT(*) AS total, AVG(EXTRACT(YEAR FROM AGE(data_nascimento))) AS idade_media FROM proprietarios GROUP BY sexo;
+
+-- Relatórios de Revisões
+SELECT * FROM revisoes WHERE data_revisao BETWEEN '2024-01-01' AND '2024-12-31';
+SELECT v.marca, COUNT(r.id) AS total_revisoes FROM revisoes r JOIN veiculos v ON r.veiculo_id = v.id GROUP BY v.marca ORDER BY total_revisoes DESC;
+SELECT p.nome, COUNT(r.id) AS total_revisoes FROM revisoes r JOIN veiculos v ON r.veiculo_id = v.id JOIN proprietarios p ON v.proprietario_id = p.id GROUP BY p.nome ORDER BY total_revisoes DESC;
+SELECT p.nome, AVG(diff) AS media_dias FROM (
+    SELECT v.proprietario_id, r.id, r.data_revisao,
+           LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) AS proxima_revisao,
+           EXTRACT(DAY FROM LEAD(r.data_revisao) OVER (PARTITION BY v.proprietario_id ORDER BY r.data_revisao) - r.data_revisao) AS diff
+    FROM revisoes r
+    JOIN veiculos v ON r.veiculo_id = v.id
+) t
+JOIN proprietarios p ON t.proprietario_id = p.id
+WHERE t.diff IS NOT NULL
+GROUP BY p.nome;
+SELECT p.nome, v.modelo, r.data_revisao,
+    (r.data_revisao + INTERVAL '180 day') AS proxima_revisao_aproximada
+FROM revisoes r
+JOIN veiculos v ON r.veiculo_id = v.id
+JOIN proprietarios p ON v.proprietario_id = p.id
+WHERE r.data_revisao = (
+    SELECT MAX(data_revisao) FROM revisoes WHERE veiculo_id = v.id
+)
+ORDER BY proxima_revisao_aproximada ASC;
